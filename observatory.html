@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <!-- Include the CesiumJS JavaScript and CSS files -->
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.108/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.108/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #cesiumContainer {
+            width: 100%;
+            height: 100%;
+
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <input type="checkbox" id="lightswitch"> Noon
+    <input type="checkbox" id="lightswitch1"> Night
+    <input type="checkbox" id="tileset1Checkbox"> Observatory Cloud Points
+    <input type="checkbox" id="tileset3Checkbox"> Observatory 1F Cloud Points
+    <input type="checkbox" id="tileset4Checkbox"> Observatory Telescope Cloud Points
+    <input type="checkbox" id="tileset2Checkbox"> Observatory Mesh glb.
+    <input type="checkbox" id="stopCheckbox"> Start Rotate.
+    <div id="cesiumContainer"></div>
+    <script type="module">
+
+
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIwZjJiNzdmNC0xNWIyLTQ1NDItOGMzYy1lYzY5ZDBjOTE2YzMiLCJpZCI6MTY0NTUzLCJpYXQiOjE2OTM4OTYxNTB9.PvBMKFNMZabBKttAcs0uHCV9R413yz2cC9qMxeSmCcA';
+        const viewer = new Cesium.Viewer("cesiumContainer", {
+            terrainProvider: await Cesium.CesiumTerrainProvider.fromIonAssetId(
+                1
+            ),
+            homeButton: false,
+            navigationHelpButton: false,
+            animation: true,
+            timeline: false,
+            requestVertexNormals: true,
+        });
+        viewer._cesiumWidget._creditContainer.style.display = "none";
+        viewer.scene.globe.depthTestAgainstTerrain = true;
+        // // fix viewer position//
+        // viewer.camera.setView({
+        //     //viewer.camera.flyTo({
+        //     destination: Cesium.Cartesian3.fromDegrees(121.271780, 24.876376, 220.0),	//赤道上空1000km高度
+        //     orientation: {
+        //         heading: Cesium.Math.toDegrees(60.0),
+        //         pitch: Cesium.Math.toRadians(10),
+        //         roll: 0.0
+        //     }
+        // });
+        // Lock camera to a point
+        var center = Cesium.Cartesian3.fromDegrees(121.2714699586, 24.8764138093, 221.408950401);
+        var transform = Cesium.Transforms.eastNorthUpToFixedFrame(center);
+        viewer.scene.camera.lookAtTransform(transform, new Cesium.HeadingPitchRange(0, -Math.PI / 20,55));
+
+       // Orbit this point
+        viewer.clock.onTick.addEventListener(function (clock) {
+            viewer.scene.camera.rotateRight(0.004);
+        });
+       
+        
+        // Add a directional light source to the scene//
+        viewer.scene.globe.enableLighting = true;
+
+        const sunlight2 = new Cesium.DirectionalLight({
+            direction: Cesium.Cartesian3.fromDegrees(121.272102 - 180, -24.8765, 0.0426275055174), // Set the light direction
+            intensity: 20
+        });
+        const moonlight = new Cesium.DirectionalLight({
+            direction: Cesium.Cartesian3.fromDegrees(121.272102, 24.8765, 0.0426275055174), // Set the light direction
+            intensity: 20
+        });
+        const sunlight = new Cesium.SunLight({
+            intensity: 50
+        });
+
+        const toggleSunlightButton = document.getElementById('lightswitch');
+        let sunlight2Enabled = false;
+        toggleSunlightButton.addEventListener('click', function () {
+            sunlight2Enabled = !sunlight2Enabled;
+
+            if (sunlight2Enabled) {
+                viewer.scene.light = sunlight2;
+            } else {
+                viewer.scene.light = sunlight;
+            }
+        });
+
+        const moonlightButton = document.getElementById('lightswitch1');
+        let moonEnabled = false;
+        moonlightButton.addEventListener('click', function () {
+            moonEnabled = !moonEnabled;
+            if (moonEnabled) {
+                viewer.scene.light = moonlight;
+            } else {
+                viewer.scene.light = sunlight;
+            }
+        });
+        //add 8 model
+
+
+        const T44 = await Cesium.Cesium3DTileset.fromIonAssetId(2412090);
+        viewer.scene.primitives.add(T44);
+        const SHK = await Cesium.Cesium3DTileset.fromIonAssetId(2412089);
+        viewer.scene.primitives.add(SHK);
+        const LEV = await Cesium.Cesium3DTileset.fromIonAssetId(2412087);
+        viewer.scene.primitives.add(LEV);
+
+        const AT2 = await Cesium.Cesium3DTileset.fromIonAssetId(2412084);
+        viewer.scene.primitives.add(AT2);
+        const PRT = await Cesium.Cesium3DTileset.fromIonAssetId(2428093);
+        viewer.scene.primitives.add(PRT);
+        const DIT = await Cesium.Cesium3DTileset.fromIonAssetId(2428107);
+        viewer.scene.primitives.add(DIT);
+        const NIT = await Cesium.Cesium3DTileset.fromIonAssetId(2428104);
+        viewer.scene.primitives.add(NIT);
+        const TEP = await Cesium.Cesium3DTileset.fromIonAssetId(2428118);
+        viewer.scene.primitives.add(TEP);
+        //add circle
+        // const greenCircle = viewer.entities.add({
+        //     position: Cesium.Cartesian3.fromDegrees(121.2714677077, 24.8764134614, 219.4217148456),
+        //     name: "Green circle at height with outline",
+        //     ellipse: {
+        //         semiMinorAxis: 26.0,
+        //         semiMajorAxis: 26.0,
+        //         extrudedHeight: 219.5935566953,
+        //         material: Cesium.Color.GHOSTWHITE.withAlpha(0.8),
+        //         outline: true, // height must be set for outline to display
+        //     },
+        // });
+        // const WHITECircle = viewer.entities.add({
+        //     position: Cesium.Cartesian3.fromDegrees(121.2714677077, 24.8764134614, 219.4217148456),
+        //     name: "Green circle at height with outline",
+        //     ellipse: {
+        //         semiMinorAxis: 15.0,
+        //         semiMajorAxis: 15.0,
+        //         extrudedHeight: 219.9817148456,
+        //         material: Cesium.Color.LIGHTGRAY.withAlpha(1),
+        //         outline: true, // height must be set for outline to display
+        //     },
+        // });
+        const WHITECircle1 = viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(121.2714677077, 24.8764134614, 219.4217148456),
+            name: "Green circle at height with outline",
+            ellipse: {
+                semiMinorAxis: 5.0,
+                semiMajorAxis: 5.0,
+                extrudedHeight: 220.4817148456,
+                material: Cesium.Color.LIGHTGRAY.withAlpha(1),
+                outline: true, // height must be set for outline to display
+            },
+        });
+
+        //add shrink.OBJ
+
+        const SHKs = await Cesium.Cesium3DTileset.fromIonAssetId(2428420);
+        viewer.scene.primitives.add(SHKs);
+        const SHKF = viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(121.2714981032, 24.8764007617, 220.4817148456),
+            name: "包西龍(Bauch & Lomb)像片縮小儀",
+            ellipse: {
+                semiMinorAxis: 1.0,
+                semiMajorAxis: 1.0,
+                Height: 220.4817148456,
+                material: Cesium.Color.WHITE.withAlpha(0.01),
+                outline: true,
+                outlineColor: Cesium.Color.GRAY,
+                outlineWidth: 0.1,
+            },
+        });
+        SHKF.description = '\
+        <img\
+        width="100%"\
+        style="float:left; margin: 0 1em 1em 0;"\
+        src="./description_photo/lomb.png"/>\
+        <p>\
+            為航空拍攝後的底片或像片，透過光學方法將底片或像片按規定比例縮小，以製作影像縮小負片、透明正片或紙質像片的儀器。只是為了好玩，這是 1892 年發布的攝影鏡頭的舊印刷廣告 當這則廣告發佈時，攝影實踐只有大約66歲。 這則廣告發布至今已有 129 年了，因此我們距離廣告發布日期的時間幾乎是距攝影術發明日期的兩倍。雖然一切都已經進步了很多，但關於這則廣告的許多內容還是很熟悉的。博士倫在現代以隱形眼鏡和眼鏡的鏡片製造商而聞名。博士倫最初總部位於紐約州羅徹斯特，是歷史最悠久、持續營運的美國公司之一，直到 2013 年被收購並遷至加拿大。 該公司由兩名德國移民於 1850 年代創立，最初生產單片眼鏡，後來生產各種光學設備，包括顯微鏡、雙筒望遠鏡和眼鏡。 1900 年代初，他們開始製造相機快門。20 世紀 40 年代，該公司開發了用於變形電影鏡頭的改進光學器件，使更大的電影螢幕成為可能。博士倫也是一家備受尊敬的百葉窗製造商。Bausch & Lomb 的“Unicum”百葉窗是當時最好的百葉窗之一。最初，該公司與德國光學和玻璃製造商廣泛合作，但從 1913 年起，該公司開始生產自己的光學玻璃。許多光學儀器和其他光學產品已經在該公司的產品組合中。靜態相機鏡頭一直生產到 20 世紀 30 年代，尤其是柯達。後來，攝影光學產品逐漸成為公司重點發展的較小部分，只剩下電影放映機鏡頭和電影攝影機鏡頭。例如，寬銀幕格式「Cinemascope」電影的特殊鏡頭就是由 B&L 製造的。該公司靜態相機光學的最新亮點是 1965 年「測量者」月球探測器的相機鏡頭。\
+        </p>\
+        <p>\
+            長X寬X高(cm):55X80X88\
+重量(kg):70kg\
+使用年代:民國50年\
+        </p>\
+        </p>\
+        Source: \
+  <a style="color: WHITE"\
+    target="_blank"\
+    href="https://icatchshadows.com/vintage-1892-magazine-ad-for-bausch-lomb-photography-lenses/">Keith DotsonJanuary 2, 2021</a>\
+</p>';
+
+
+        //viewer.trackedEntity = entity; fix the entitiess position
+        //add observatory.OBJ//
+        const position0 = Cesium.Cartesian3.fromDegrees(
+            121.2720370,
+            24.876459197,
+            219.0
+        );
+        const heading0 = Cesium.Math.toRadians(90);
+        const pitch0 = 0;
+        const roll0 = 0;
+        const hpr0 = new Cesium.HeadingPitchRoll(heading0, pitch0, roll0);
+        const orientation0 = Cesium.Transforms.headingPitchRollQuaternion(
+            position0,
+            hpr0
+        );
+        const url0 = await Cesium.IonResource.fromAssetId(2428182);
+        const entity0 = viewer.entities.add({
+            name: '中正嶺天文台',
+            position: position0,
+            orientation: orientation0,
+            model: {
+                uri: url0,
+                scale: 100,
+            },
+        });
+        const tileset2Checkbox = document.getElementById("tileset2Checkbox");
+        tileset2Checkbox.checked = false;
+        tileset2Checkbox.addEventListener("change", function () {
+            if (tileset2Checkbox.checked) {
+                entity0.show = true;
+            } else {
+                entity0.show = false;
+            }
+        });
+        entity0.show = false;
+        // add observatory.laz //
+        const tileset1Checkbox = document.getElementById("tileset1Checkbox");
+        tileset1Checkbox.checked = true;
+        // Event listener for checkbox change
+        tileset1Checkbox.addEventListener("change", function () {
+            if (tileset1Checkbox.checked) {
+                tileset1.show = true;
+            } else {
+                tileset1.show = false;
+            }
+        });
+        // Load the 3D Tileset (replace with your asset ID)
+        const tileset1 = await Cesium.Cesium3DTileset.fromIonAssetId(2331952);
+        viewer.scene.primitives.add(tileset1);
+        // Show the tileset1 by default as it's checked
+        tileset1.show = true;
+        // add observatory 1F laz //
+        const tileset3Checkbox = document.getElementById("tileset3Checkbox");
+        tileset3Checkbox.checked = false;
+
+        tileset3Checkbox.addEventListener("change", function () {
+            if (tileset3Checkbox.checked) { tileset3.show = true; }
+            else { tileset3.show = false; }
+        });
+
+        const tileset3 = await Cesium.Cesium3DTileset.fromIonAssetId(2336041);
+        viewer.scene.primitives.add(tileset3);
+        tileset3.show = false;
+        // add observatory Telescope laz //
+        const tileset4Checkbox = document.getElementById("tileset4Checkbox");
+        tileset4Checkbox.checked = false;
+
+        tileset4Checkbox.addEventListener("change", function () {
+            if (tileset4Checkbox.checked) { tileset4.show = true; redBox.show = true; }
+            else { tileset4.show = false; redBox.show = false; }
+        });
+
+        const tileset4 = await Cesium.Cesium3DTileset.fromIonAssetId(2336077);
+        viewer.scene.primitives.add(tileset4);
+        tileset4.show = false;
+        // add observatory Telescope laz frame entity//
+        const redBox = viewer.entities.add({
+            name: "Telescope",
+            position: Cesium.Cartesian3.fromDegrees(121.2721559583, 24.8766120835, 225.4904543799),
+            box: {
+                dimensions: new Cesium.Cartesian3(7, 7, 5),
+                material: Cesium.Color.GHOSTWHITE.withAlpha(0.02),
+                outline: true,
+                outlineColor: Cesium.Color.GRAY,
+                outlineWidth: 0.1,
+            },
+        });
+        redBox.show = false;
+
+        //add level obj//
+        const LEVs = await Cesium.Cesium3DTileset.fromIonAssetId(2428302);
+        viewer.scene.primitives.add(LEVs);
+        const LEVF = viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(121.2714795909, 24.8763826464, 220.4817148456),
+            name: "PATENT水準儀",
+            ellipse: {
+                semiMinorAxis: 1.0,
+                semiMajorAxis: 1.0,
+                Height: 220.4817148456,
+                material: Cesium.Color.WHITE.withAlpha(0.01),
+                outline: true,
+                outlineColor: Cesium.Color.GRAY,
+                outlineWidth: 0.1,
+            },
+        });
+        LEVF.description = '\
+        <img\
+        width="100%"\
+        style="float:left; margin: 0 1em 1em 0;"\
+        src="./description_photo/LEV.png"/>\
+        <p>\
+            建立水平視線測定地面兩點間高差的儀器。為測量人員觀測點位高程之作業，又分因使用儀器及作業方法而異，可分為：直接高程測量、間接高程測量(包含三角高程測量、視距高程測量及氣壓計高程測量)。\
+        </p>\
+        <p>\
+            長X寬X高(cm):30X9X19\
+重量(kg):3kg\
+使用年代:民國50年\
+        </p>';
+
+
+        //add distance OBJ//
+        const DITTs = await Cesium.Cesium3DTileset.fromIonAssetId(2428421);
+        viewer.scene.primitives.add(DITTs);
+        const DITTF = viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(121.271452761, 24.8764437953, 220.4817148456),
+            name: "AGA-14A測距儀",
+            ellipse: {
+                semiMinorAxis: 1.0,
+                semiMajorAxis: 1.0,
+                Height: 220.4817148456,
+                material: Cesium.Color.WHITE.withAlpha(0.01),
+                outline: true,
+                outlineColor: Cesium.Color.GRAY,
+                outlineWidth: 0.1,
+            },
+        });
+        DITTF.description = '\
+        <img\
+        width="100%"\
+        style="float:left; margin: 0 1em 1em 0;"\
+        src="./description_photo/AGA.jpg"/>\
+        <p>\
+            為距離量測之儀器。與傳統的鋼尺或基線尺的量距相比,它具有精度高、作業迅速,受氣候、地形影響小等優點。其測程可達 66-80km。\
+        </p>\
+        <p>\
+            長X寬X高(cm):22X18X12\
+重量(kg):2.5kg\
+使用年代:民國70年\
+        </p>';
+
+        //add T4 OBJ//
+        const T4s = await Cesium.Cesium3DTileset.fromIonAssetId(2428422);
+        viewer.scene.primitives.add(T4s);
+        const T4F = viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(121.2714973639, 24.8764235254, 220.4817148456),
+            name: "威特(WILD) T4經緯儀",
+            ellipse: {
+                semiMinorAxis: 1.0,
+                semiMajorAxis: 1.0,
+                Height: 220.4817148456,
+                material: Cesium.Color.WHITE.withAlpha(0.01),
+                outline: true,
+                outlineColor: Cesium.Color.GRAY,
+                outlineWidth: 0.1,
+            },
+        });
+        T4F.description = '\
+        <img\
+        width="100%"\
+        style="float:left; margin: 0 1em 1em 0;"\
+        src="./description_photo/T4.jpg"/>\
+        <img\
+        width="100%"\
+        style="float:left; margin: 0 1em 1em 0;"\
+        src="./description_photo/T4BOX.png"/>\
+        <p>\
+            1941 年至 1966 年間，Wild生產了所謂的老式型號 T4。 新款T4A於1968年開始生產，並於1975年結束。隨後在1977年至1981年間，為美國國防測繪局生產了一些改進型T4A，該局用數位相機取代了光學目鏡。 Wild 自己報告稱，1941 年至1981 年間，該公司共生產了439 台T4 型經緯儀。此外，據稱1941 年至1970 年間，共生產了357 台T4 型經緯儀，估計新款式的型號不到100 台。T4 於 1970 年後生產，其中包括 12 架改良型 T4A。 無論如何，澳洲使用的 T4 型號都是老式的。Wild T4全站儀是瑞士Wild Heerbrugg公司在1950年代推出的一款經典產品。它是一種光學儀器，用於測量水平角和垂直角度，並能測量距離和高度。這種全站儀在地質勘測、建築工程、道路施工以及其他需要精確測量的領域中被廣泛使用。此儀器應用於精密天文測量，以測定天文位置及天文方位角。主要結構為基座和Y型軛架，望遠鏡和垂直度盤，泰爾各答水準氣、目視測微器，以及懸水準等。T4經緯儀最小讀數亦為估讀1/100〞，望遠鏡採折鏡形式，目鏡在水平軸之一端，專供天文測量之用，亦稱為天文經緯儀。\
+屬於「破碎望遠鏡」類型，這意味著望遠鏡中形成的影像是透過放置在耳軸一端的目鏡觀看的。 其強大的望遠鏡具有約 60 倍的放大倍率，可以舒適地觀測天頂，因為帶有「非個人千分尺」的目鏡始終位於眼睛水平。 水平和垂直圓讀數分別用光學千分尺直接讀取到 0.1" 和 0.2"，透過直徑上相對的刻度的重合讀數。 它能夠確定經度至 0.01 秒，緯度至 0.2" 弧度，方位角至 0.3" 弧度。此望遠鏡物鏡直徑為70毫米，焦距（f）為578毫米，由於其放大倍率強大，最短視距約為100 m。 水平圓和垂直圓的直徑分別為240毫米和135毫米。 垂直圓的高度氣泡的靈敏度為每 2 毫米 2 英吋。懸掛水準儀和隨儀器提供的兩個 Horrebow-Talcott 水準儀的靈敏度為每 2 毫米 1 英吋。運輸箱：望遠鏡裝置（735x507x300 毫米，21 公斤）、軛架組件（534x435x542 毫米，20 公斤）、懸掛水平儀（373x272x117 毫米，7 公斤）。懸掛水平儀標示為 48 號，其小瓶標示為 306 號。水平儀盒內的銘牌上標示靈敏度為 1.15 吋/2 公釐。\
+        </p>\
+        <p>\
+            長X寬X高(cm):40X65X56\
+重量(kg):110磅\
+使用年代:民國50年\
+        </p>\
+        Source: \
+  <a style="color: WHITE"\
+    target="_blank"\
+    href="https://www.xnatmap.org/adnm/ops/manuals/T4/WILD_T4_AUST.htm">Paul Wise, 2021, updated 2022</a>\
+</p>';
+        //add telescope glb//
+        const DITs = await Cesium.Cesium3DTileset.fromIonAssetId(2428329);
+        viewer.scene.primitives.add(DITs);
+        const TELF = viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(121.2714362255, 24.8764274988, 220.4817148456),
+            name: "N.O.D. AN/TVS-4夜視觀測儀",
+            ellipse: {
+                semiMinorAxis: 1.0,
+                semiMajorAxis: 1.0,
+                Height: 220.4817148456,
+                material: Cesium.Color.WHITE.withAlpha(0.01),
+                outline: true,
+                outlineColor: Cesium.Color.GRAY,
+                outlineWidth: 0.1,
+            },
+        });
+        TELF.description = '\
+        <img\
+        width="100%"\
+        style="float:left; margin: 0 1em 1em 0;"\
+        src="./description_photo/NI.png"/>\
+        <p>\
+            AN/PVS-4 的初步工程開發由德州達拉斯市的光學電子公司於 1975 年進行，作為越戰時期 AN/PVS-2 星光瞄準鏡的替代品。 1976 年，第一個生產合約被授予 47,074 台，並於 1978 年首次部署。1985 年至 1989 年間，產量增加了 16,927 輛；1990 年至 1992 年間，產量增加了 24,046 輛。 到 2002 年，光是在美國就生產了超過 15 萬輛。 儘管生產已經停止，但直到 2008 年，美國軍方仍在獲取零件來修理 AN/PVS-4 以及將 AN/PVS-4 改裝為 AN/TVS-5A。目前也將 AN/PVS-4 升級為 AN/PVS4A。 在海灣戰爭期間，AN/PVS-4被廣泛部署在多種武器上。海灣戰爭是第一次透過使用夜視設備晝夜持續進行地面作戰的戰爭。 儘管伊拉克戰爭期間出現了更現代化的裝備，但 AN/PVS-4 仍在積極使用。AN/PAS-13熱武器瞄準器的生產於 1996 年開始，AN/PVS-4 的生產於 2002 年完全停止。此設備的操作是透過位於管殼左側的兩個控制器進行的。 下部控制器是影像增強管的開/關開關，其次是控制管的增益，允許操作員控制影像的亮度。 上部控制器是照明十字線的開/關開關，其次允許調整十字線的亮度。 仰角和風偏調節是透過物鏡上的轉塔進行的。AN/PVS-4使用25mm螺旋式可變增益影像增強管。 工作電壓為 3.0 伏特。 早期生產型號的主外殼上有兩個圓形電池盒。 這些電池盒設計用於同時容納一個 3.0V BA-5567/U 或兩個 1.5V BA-3058/U。 後來的型號（例如 AN/PVS-4A）使用兩節普通 AA 電池 (BA-3058/U)，透過專用適配器 (PN A3009873) 連接到其中一個圓形電池盒。 使用此轉接器就不再需要 BA-5567/U 和 BA-3058/U。\
+        </p>\
+        <p>\
+            長X寬X高(cm):78X15X29\
+重量(kg):16kg\
+  使用年代:民國50年\
+        </p>\
+        <p>\
+  Source: \
+  <a style="color: WHITE"\
+    target="_blank"\
+    href="https://en.wikipedia.org/wiki/AN/PVS-4">Wikpedia</a>\
+</p>';
+
+        //add 3F TELESCOPE
+        const TEL3s = await Cesium.Cesium3DTileset.fromIonAssetId(2428337);
+        viewer.scene.primitives.add(TEL3s);
+        // add 3F TELESCOPE frame entity//
+        // const  = viewer.entities.add({
+        //     name: "Telescope",
+        //     position: Cesium.Cartesian3.fromDegrees(121.2714789078, 24.8764450182, 221.3607846955),
+        //     box: {
+        //         dimensions: new Cesium.Cartesian3(0.5, 0.5, 0.5),
+        //         material: Cesium.Color.GHOSTWHITE.withAlpha(0.02),
+        //         outline: true,
+        //         outlineColor: Cesium.Color.GRAY,
+        //         outlineWidth: 0.1,
+        //     },
+        // });
+        const TEL3F = viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(121.2714789078, 24.8764450182, 220.4817148456),
+            name: "月掩星觀測儀",
+            ellipse: {
+                semiMinorAxis: 1.0,
+                semiMajorAxis: 1.0,
+                Height: 220.4817148456,
+                material: Cesium.Color.WHITE.withAlpha(0.01),
+                outline: true,
+                outlineColor: Cesium.Color.GRAY,
+                outlineWidth: 0.1,
+            },
+        });
+        //TEL3F.show = false;
+        //add PRINTS
+        const PRTs = await Cesium.Cesium3DTileset.fromIonAssetId(2428333);
+        viewer.scene.primitives.add(PRTs);
+        const PRTF = viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(121.2714359294, 24.8764004432, 220.4817148456),
+            name: "石板印刷機",
+            ellipse: {
+                semiMinorAxis: 1.0,
+                semiMajorAxis: 1.0,
+                Height: 220.4817148456,
+                material: Cesium.Color.WHITE.withAlpha(0.01),
+                outline: true,
+                outlineColor: Cesium.Color.GRAY,
+                outlineWidth: 0.1,
+            },
+        });
+        PRTF.description = '\
+        <img\
+        width="100%"\
+        style="float:left; margin: 0 1em 1em 0;"\
+        src="./description_photo/PRTS.jpg"/>\
+        <img\
+        width="100%"\
+        style="float:left; margin: 0 1em 1em 0;"\
+        src="./description_photo/PRT2.png"/>\
+        <p>\
+            石板印刷是以石板為版材，將圖文以脂肪性物質書寫、描繪在石板上，或是通過照相、書寫紙及轉墨紙等方式，將圖文間接轉墨於石板上，進行印刷的工藝藝術。當使用平版印刷工藝印刷原創藝術品時，所得印刷品稱為平版印刷品。為了列印影像的多個副本，首先必須在不同的表面（通常是平版石或平板）上製作原件的副本。該過程於 1798 年由慕尼黑的阿洛伊斯·塞內費爾德 (Alois Senefelder ) 使用多孔的巴伐利亞石灰石製作盤子（因此稱為平版印刷，源自希臘語lithos，意為“石頭”）。平版印刷的秘密一直被嚴格保守，直到 1818 年 Senefelder 出版了《Vollständiges Lehrbuch der Steindruckerey》（《平版印刷完整教程》）。Godefroy Englemann 於 1837 年和 Thomas S. Boys 於 1839 年在彩色平版印刷（使用彩色墨水）方面做出了一些出色的早期工作，但該方法直到1860 年才廣泛應用於商業用途。隨後它成為最受歡迎的色彩複製方法19 世紀餘下的時間。這些商業印刷品是透過手工方法為要使用的每種顏色（色調）準備一塊單獨的石頭並將一種顏色套印在另一種顏色上而製成的。有時，一個主題會使用多達 30 顆寶石。在膠印過程中，首先將著墨圖像印刷在橡膠滾筒上，然後將圖像偏移或轉移到紙張或其他材料上。由於橡膠滾筒的靈活性，膠印平版印刷可用於在錫、木材、布料、皮革以及粗糙或光滑的紙張上進行印刷。過去，膠印主要用於生產大批量的印刷品——日曆、賀卡、小冊子、信箋、書籍、雜誌、報紙、地圖、海報、廣告牌、郵票、罐頭標籤、包裝和其他廣告品。數量。\
+        </p>\
+        <p>\
+            長X寬X高(cm):130X75X115\
+重量(kg):130kg\
+使用年代:清光緒年間\
+        </p>\
+        Source: \
+  <a style="color: WHITE"\
+    target="_blank"\
+    href="https://www.britannica.com/technology/lithography">Chelsey Parrott-Sheffer,Jan 9, 2024</a>\
+</p>';
+        //add ALT2S
+        const ALT2s = await Cesium.Cesium3DTileset.fromIonAssetId(2428345);
+        viewer.scene.primitives.add(ALT2s);
+        const ALT2F = viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(121.2714549792, 24.8763866873, 220.4817148456),
+            name: "ALT2 frame",
+            ellipse: {
+                semiMinorAxis: 1.0,
+                semiMajorAxis: 1.0,
+                Height: 220.4817148456,
+                material: Cesium.Color.WHITE.withAlpha(0.01),
+                outline: true,
+                outlineColor: Cesium.Color.GRAY,
+                outlineWidth: 0.1,
+            },
+        });
+        // add entity description //
+        TEL3F.description = '\
+        <img\
+        width="100%"\
+        style="float:left; margin: 0 1em 1em 0;"\
+        src="./description_photo/telescope.png"/>\
+        <p>\
+            月球掩星觀測資料的集中收集始於 1930 年代，大約兩年後由皇家格林威治天文台負責。該職責於 1981 年移交給日本水道測量部。現在移交給 IOTA。IOTA 將從 9 月 1 日起開始收集非洲、澳洲、北美和南美的觀測數據。日本和歐洲的啟動將在不久的將來進行。用於觀測某些由於天體之間相對位置所造成天文現像的儀器。如月球運轉於地球與大陽之間，便看到日蝕；而當月球運行於地球的陰影處，便無法反射陽光，便是月食。原理類似，當月球遮住某顆星，星光會在地面上形成陰影，這便是月掩星觀測儀所觀測之數據、現像。觀測一天體為月球所遮蔽之時間，從而計算其輿地位置之儀器。\
+        </p>\
+        <p>\
+            長X寬X高(cm):15X75X220\
+重量(kg):30kg\
+使用年代:民國50年\
+        </p></p>\
+        Source: \
+  <a style="color: WHITE"\
+    target="_blank"\
+    href="https://www.sciencedirect.com/topics/earth-and-planetary-sciences/lunar-occultation">R.S. Gross, in Treatise on Geophysics (Second Edition), 2015</a>\
+</p>';
+        redBox.description = '\
+        <img\
+        width="100%"\
+        style="float:left; margin: 0 1em 1em 0;"\
+        src="./description_photo/3FTEP.jpg"/>\
+        <p>\
+            1959年時作家左秀靈就讀中正理工學院測繪工程學系四年級，操作月掩星觀測儀（大地定位之用）。 左秀靈，1938年生，國防大學理工學院地形測量學系畢業，曾執教於國防語文學校、三軍大學，曾任國防語文學校日文教師、實踐大學出版部主任兼總編輯、中央文物供應社、建宏出版社、五洲出版社總編輯。著有《實用成語辭典》、《錯別字辨正》、《當代日華辭典》、《日文口語文法》、《顛覆國文》等五十餘種以上。\
+        </p>\
+        <p>\
+            長X寬X高(cm):15X75X220\
+重量(kg):30kg\
+使用年代:民國50年\
+        </p>';
+
+
+
+
+
+        // Add Cesium OSM Buildings, a global 3D buildings layer.
+        // const buildingTileset = await Cesium.createOsmBuildingsAsync();
+        // viewer.scene.primitives.add(buildingTileset);   
+    </script>
+    </div>
+</body>
+
+</html>
